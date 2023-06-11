@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Stretching Timer</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <style>
+    .timer {
+      font-size: 3rem;
+      text-align: center;
+    }
+
+    .start-btn {
+      font-size: 1.5rem;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .gif-container {
+      text-align: center;
+      overflow-x: scroll;
+      max-height: 400px;
+      /* Adjust the max-height as needed */
+    }
+
+    .gif-container img {
+      width: 300px;
+      height: 300px;
+      /* Adjust the height as needed */
+    }
+
+    .mini-timer {
+      font-size: 1rem;
+      text-align: center;
+    }
+  </style>
+
+</head>
+
+<body>
+  <div class="container mt-5">
+    <h1 class="text-center">Stretching Timer</h1>
+    <div class="timer display-4">00:00:00</div>
+    <button id="startBtn" class="btn btn-primary btn-lg start-btn mt-3" onclick="toggleTimer()">Start</button>
+    <div id="stretchingPopup" class="alert alert-info mt-3" style="display: none;">
+      <h4 class="alert-heading">Start Stretching!</h4>
+      <p>It's time to take a break and do some stretching exercises.</p>
+      <hr>
+      <div class="text-center">
+        <button class="btn btn-success mr-2" onclick="acceptStretching()">Accept</button>
+        <button class="btn btn-danger" onclick="rejectStretching()">Reject</button>
+      </div>
+    </div>
+    <div id="gifContainer" class="gif-container mt-3" style="display: none;"></div>
+    <div id="miniTimer" class="mini-timer"></div>
+    <audio id="notificationSound">
+      <source src="notification.wav" type="audio/mpeg">
+    </audio>
+  </div>
+
+  <script>
+    // Timer variables
+    let hours = 0;
+    let minutes = 0;
+    let seconds = 0;
+
+    // Timer interval variable
+    let timerInterval;
+
+    // Stretching variables
+    let stretchingInterval;
+    let gifIndex = 0;
+    let stretchingAccepted = false;
+
+    // Get posture from query parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const posture = urlParams.get('posture');
+
+        // GIFs based on posture
+    const gifs = {
+      standing: [
+        "./Stretching Exercise_Standing/arm rotation.gif",
+        "./Stretching Exercise_Standing/Back stretch.gif",
+        "./Stretching Exercise_Standing/hip rotation.gif",
+        "./Stretching Exercise_Standing/Lower back Stretch.gif",
+        "./Stretching Exercise_Standing/neck stretch.gif",
+        "./Stretching Exercise_Standing/shoulder rotation.gif",
+        "./Stretching Exercise_Standing/triceps stretch.gif",
+        // Add more GIF paths here
+      ],
+      sitting: [
+        "./Stretching Exercise_Sitting/assisted neck stretch.gif",
+        "./Stretching Exercise_Sitting/Back stretch.gif",
+        "./Stretching Exercise_Sitting/hamstring stretch.gif",
+        "./Stretching Exercise_Sitting/neck stretch.gif",
+        "./Stretching Exercise_Sitting/quad stretch.gif",
+        "./Stretching Exercise_Sitting/traps stretch.gif",
+        "./Stretching Exercise_Sitting/triceps stretch.gif",
+
+        // Add more GIF paths here
+      ]
+    };
+
+    // Function to update the timer display
+    function updateTimerDisplay() {
+      let timerDisplay = document.querySelector('.timer');
+      timerDisplay.textContent = hours.toString().padStart(2, '0') + ':' +
+        minutes.toString().padStart(2, '0') + ':' +
+        seconds.toString().padStart(2, '0');
+    }
+
+    // Function to start or stop the timer
+    function toggleTimer() {
+      let startBtn = document.getElementById('startBtn');
+
+      if (startBtn.textContent === 'Start') {
+        // Start the timer
+        timerInterval = setInterval(function () {
+          seconds++;
+          if (seconds >= 60) {
+            seconds = 0;
+            minutes++;
+            if (minutes >= 60) {
+              minutes = 0;
+              hours++;
+            }
+          }
+          updateTimerDisplay();
+
+          if (minutes % 30 === 0 && seconds ===0) {
+            showStretchingPopup();
+            playNotificationSound();
+            clearInterval(timerInterval);
+            startBtn.textContent = 'Start';
+          }
+        }, 1000);
+
+        startBtn.textContent = 'Stop';
+      } else {
+        // Stop the timer
+        clearInterval(timerInterval);
+        startBtn.textContent = 'Start';
+      }
+    }
+
+    // Function to show the stretching popup
+    function showStretchingPopup() {
+      let stretchingPopup = document.getElementById('stretchingPopup');
+      stretchingPopup.style.display = 'block';
+    }
+    
+    // Function to reject stretching
+    function rejectStretching() {
+      let stretchingPopup = document.getElementById('stretchingPopup');
+      stretchingPopup.style.display = 'none';
+      clearInterval(timerInterval);
+      toggleTimer();
+    }
+
+    // Function to accept stretching
+    function acceptStretching() {
+      let stretchingPopup = document.getElementById('stretchingPopup');
+      stretchingPopup.style.display = 'none';
+      showNextGif(posture); // Show the first GIF instantly after accepting
+    }
+
+    // Function to show the next stretching GIF
+    // Function to show the next stretching GIF
+    // Function to show the next stretching GIF
+// Function to show the next stretching GIF
+function showNextGif(posture) {
+  let stretchingPopup = document.getElementById('stretchingPopup');
+  stretchingPopup.style.display = 'none';
+  stretchingAccepted = true;
+
+  let miniTimer = document.getElementById('miniTimer');
+  miniTimer.textContent = 'Stretching Timer: 00:00';
+
+  let gifContainer = document.getElementById('gifContainer');
+  gifContainer.style.display = 'block';
+
+  if (gifIndex >= gifs[posture].length) {
+    gifContainer.style.display = 'none';
+    clearInterval(stretchingInterval);
+    miniTimer.textContent = 'Well done!';
+    miniTimer.classList.add('well-done');
+
+    setTimeout(function () {
+      gifIndex = 0;
+      miniTimer.textContent = '';
+      miniTimer.classList.remove('well-done');
+    }, 5000); // Hide the "Well done" message after 5 seconds
+
+    return;
+  }
+
+  let gifPath = gifs[posture][gifIndex];
+  let gifImg = document.createElement('img');
+  gifImg.src = gifPath;
+  gifContainer.innerHTML = '';
+  gifContainer.appendChild(gifImg);
+
+  let gifDuration = 10; // Duration of each GIF in seconds
+  let elapsedSeconds = 0;
+
+  stretchingInterval = setInterval(function () {
+    elapsedSeconds++;
+    let remainingSeconds = gifDuration - elapsedSeconds;
+
+    let minutes = Math.floor(remainingSeconds / 60);
+    let seconds = remainingSeconds % 60;
+
+    miniTimer.textContent = 'Stretching Timer: ' +
+      minutes.toString().padStart(2, '0') + ':' +
+      seconds.toString().padStart(2, '0');
+
+    if (elapsedSeconds >= gifDuration) {
+      clearInterval(stretchingInterval);
+      gifContainer.innerHTML = ''; // Clear the GIF container
+      gifIndex++;
+      showNextGif(posture); // Show the next GIF
+    }
+  }, 1000);
+}
+    
+    // Function to play the notification sound
+    function playNotificationSound() {
+      let notificationSound = document.getElementById('notificationSound');
+      notificationSound.play();
+    }
+  </script>
+</body>
+
+</html>
